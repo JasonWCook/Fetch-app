@@ -8,17 +8,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -31,7 +28,6 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -123,27 +119,39 @@ public class MainActivity extends AppCompatActivity {
             }});
     }
     private void updateDisplay(){
-        // Build a View dynamically with all the items
+        /* Build a View dynamically with all the items */
         if( itemList.size() > 0 ) {
 
-            // Create a container for the heading and recycler view
+            /* Create a container for the heading and recycler view */
             LinearLayout outerLayout = new LinearLayout(this);
             outerLayout.setOrientation(LinearLayout.VERTICAL);
 
-            // Create the heading so users know what the numbers mean
-            LinearLayout headingLayout = new LinearLayout(this);
-            headingLayout.setOrientation(LinearLayout.HORIZONTAL);
+            /* Create the heading so users know what the numbers mean */
+            GridLayout headingLayout = new GridLayout(this);
             TextView idLabel = new TextView(this);
             idLabel.setText("ID");
+            idLabel.setTextSize(20);
+            idLabel.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+
             TextView listIdLabel = new TextView(this);
             listIdLabel.setText("LIST ID");
+            listIdLabel.setTextSize(20);
+            listIdLabel.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+
             TextView itemLabel = new TextView(this);
             itemLabel.setText("ITEM NAME");
-            headingLayout.addView(idLabel);
-            headingLayout.addView(listIdLabel);
-            headingLayout.addView(itemLabel);
+            itemLabel.setTextSize(20);
+            itemLabel.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
 
-            // Create Recyclerview and bind the adapter to it
+            /* Retrieve width of screen and add the views to be divided evenly */
+            Point size = new Point( );
+            this.getDisplay().getRealSize(size);
+            int width = size.x;
+            headingLayout.addView( idLabel, ( int ) (width / 3 ), ViewGroup.LayoutParams.MATCH_PARENT );
+            headingLayout.addView( listIdLabel, ( int ) ( width / 3 ), ViewGroup.LayoutParams.MATCH_PARENT );
+            headingLayout.addView( itemLabel, ( int ) ( width / 3 ), ViewGroup.LayoutParams.MATCH_PARENT );
+
+            /* Create Recyclerview and bind the adapter to it */
             RecyclerView recyclerView = new RecyclerView(this);
             recyclerView.setHasFixedSize(true);
 
@@ -153,60 +161,10 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setLayoutManager(mLayoutManager);
             recyclerView.setAdapter(mAdapter);
 
-            // Set the view to the content
+            /* Set the view to the content */
             outerLayout.addView(headingLayout);
             outerLayout.addView(recyclerView);
             setContentView( outerLayout );
-            /*
-             ScrollView scrollView = new ScrollView( this );
-            GridLayout grid = new GridLayout( this );
-            grid.setRowCount( itemList.size() );
-            grid.setPaddingRelative(25,50,25,50);
-            grid.setColumnCount( 3 );
-
-            // Create arrays of components
-            TextView [] ids = new TextView[itemList.size()];
-            TextView [] listIds = new TextView[itemList.size()];
-            TextView [] names = new TextView[itemList.size()];
-
-            // Retrieve width of screen
-            Point size = new Point( );
-            this.getDisplay().getRealSize(size);
-            int width = size.x;
-
-            int i = 0;
-
-            for ( Item item : itemList ) {
-                // Create the TextView for the item's id
-                ids[i] = new TextView( this );
-                ids[i].setGravity( Gravity.RIGHT );
-                ids[i].setText( "" + item.getId( ) );
-                ids[i].setTextSize(25);
-
-                // Create list id
-                listIds[i] = new TextView( this );
-                listIds[i].setGravity( Gravity.RIGHT );
-                listIds[i].setText( "" + item.getListId());
-                listIds[i].setTextSize(25);
-
-                // Create the name
-                names[i] = new TextView( this );
-                names[i].setGravity( Gravity.LEFT );
-                names[i].setText( item.getName() );
-                names[i].setTextSize(25);
-
-                // Add the elements to grid ONLY if name was not null, "null", or empty
-                if (item.getName() != null && item.getName().compareTo("null") != 0 && item.getName().length() > 0) {
-                    grid.addView( ids[i], ( int ) (width / 3 ), ViewGroup.LayoutParams.MATCH_PARENT );
-                    grid.addView( listIds[i], ( int ) ( width / 3 ), ViewGroup.LayoutParams.MATCH_PARENT );
-                    grid.addView( names[i], ( int ) ( width / 3 ), ViewGroup.LayoutParams.MATCH_PARENT );
-                    i++;
-                }
-            }
-            scrollView.addView( grid );*/
-
-            /*scrollView.addView();
-            setContentView( scrollView );*/
         }
     }
 }
