@@ -1,3 +1,4 @@
-<resources>
-    <string name="app_name">Fetch-app</string>
+    <resources>
+    <string name="app_name">Fetch JSON</string>
+    <string name="json_source">https://fetch-hiring.s3.amazonaws.com/hiring.json</string>
 </resources>
