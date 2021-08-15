@@ -5,10 +5,18 @@
 package edu.wwu.csci412.fetch_app;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.graphics.Point;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.android.volley.Request;
@@ -16,12 +24,13 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,23 +39,27 @@ public class MainActivity extends AppCompatActivity {
     private Button myButton;
     private RequestQueue mQueue;
 
+    /* Store the data in an array list for easy sorting later */
+    ArrayList<Item> itemList = new ArrayList<Item>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         /* Grab JSON data from URL using Volley */
-        mTextViewResult = findViewById(R.id.textViewResult);
-        myButton = findViewById(R.id.button);
+       // mTextViewResult = findViewById(R.id.textViewResult);
+        //myButton = findViewById(R.id.button);
         mQueue = Volley.newRequestQueue(this);
-        //getDataFromServer();
+        getDataFromServer();
+/*
         myButton.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 getDataFromServer();
+                updateDisplay();
             }
-        });
+        });*/
 
     }
 
@@ -56,21 +69,33 @@ public class MainActivity extends AppCompatActivity {
      * stores JSON data from the web address locally for sorting
      */
     private void getDataFromServer() {
+        /* Prepare the Request */
         String jsonURL = getApplicationContext().getString(R.string.json_source);
-        System.out.println(jsonURL);
-        // prepare the Request
+
         JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, jsonURL, null,
                 new Response.Listener<JSONArray>()
                 {
                     @Override
                     public void onResponse(JSONArray response) {
-                        // display response
-                        try {
-                            mTextViewResult.append(response.getJSONObject(0).toString());
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        for (int i = 0; i < response.length(); i++)
+                        {
+                            try {
+                                /* Create a temp object from the array */
+                                JSONObject entry = response.getJSONObject(i);
+                                int id = entry.getInt("id");
+                                int listId = entry.getInt("listId");
+                                String name = entry.getString("name");
+
+                                /* Create an item element and add it to the array list */
+                                Item tempItem = new Item(id, listId, name);
+                                itemList.add(tempItem);
+
+                               // mTextViewResult.append(id + ", " + listId + ", " + name + "\n\n");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
-                        Log.d("Got response", response.toString());
+                        updateDisplay();
                     }
                 },
                 new Response.ErrorListener()
@@ -82,34 +107,55 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
         mQueue.add(getRequest);
-    /*
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, jsonURL, null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray jsonResponse = response.getJSONArray("");
-                            for (int i = 0; i < jsonResponse.length(); i++) {
-                                JSONObject entry = jsonResponse.getJSONObject(i);
+    }
 
-                                int id = entry.getInt("id");
-                                int listId = entry.getInt("listId");
-                                String name = entry.getString("mail");
+    private void updateDisplay(){
+        // Build a View dynamically with all the items
+        if( itemList.size() > 0 ) {
+            // Create ScrollView and GridLayout
+            ScrollView scrollView = new ScrollView( this );
+            GridLayout grid = new GridLayout( this );
+            grid.setRowCount( itemList.size() );
+            grid.setColumnCount( 3 );
 
-                                mTextViewResult.append(id + ", " + listId + ", " + name + "\n\n");
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    error.printStackTrace();
+            // Create arrays of components
+            TextView [] ids = new TextView[itemList.size()];
+            TextView [] listIds = new TextView[itemList.size()];
+            TextView [] names = new TextView[itemList.size()];
+
+            // Retrieve width of screen
+            Point size = new Point( );
+            getWindowManager( ).getDefaultDisplay( ).getSize( size );
+            //this.getDisplay().getRealSize(size);
+            int width = size.x;
+
+            int i = 0;
+
+            for ( Item item : itemList ) {
+                // Create the TextView for the item's id
+                ids[i] = new TextView( this );
+                ids[i].setGravity( Gravity.CENTER );
+                ids[i].setText( "" + item.getId( ) );
+
+                // Create list id
+                listIds[i] = new TextView( this );
+                listIds[i].setText( "" + item.getListId());
+
+                // create the name
+                names[i] = new TextView( this );
+                names[i].setText( item.getName() );
+
+
+                // Add the elements to grid ONLY if name was not null, "null", or empty
+                if (item.getName() != null && item.getName().compareTo("null") != 0 && item.getName().length() > 0) {
+                    grid.addView( ids[i], ( int ) (width * .25), ViewGroup.LayoutParams.WRAP_CONTENT );
+                    grid.addView( listIds[i], ( int ) ( width * .5 ), ViewGroup.LayoutParams.WRAP_CONTENT );
+                    grid.addView( names[i], ( int ) ( width * .5 ), ViewGroup.LayoutParams.WRAP_CONTENT );
+                    i++;
                 }
-        });
-        mQueue.add(request);
-
- */
+            }
+            scrollView.addView( grid );
+            setContentView( scrollView );
+        }
     }
 }
